@@ -1,0 +1,53 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.swp
+*.swo
+
+# Flask specific
+instance/
+.env
+*.env
+
+# GraphQL-specific (if you're caching schemas)
+.graphqlconfig/
+
+# Jupyter Notebooks (if used in the future)
+.ipynb_checkpoints/
+
+# Pytest
+.cache/
+pytest_cache/
+.tox/
+
+# SQLAlchemy migrations (if using Alembic)
+migrations/
+
+# Docker
+*.log
+docker-compose.override.yml
+docker-compose.debug.yml
+.dockerignore
+
+# PostgreSQL
+*.sql
+*.dump
+pgdata/
+*.db
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db

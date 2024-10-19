@@ -1,0 +1,19 @@
+# Required Python libraries
+# File: /requirements.txt
+
+# Flask for the web server
+Flask==2.3.2
+# Graphene for the GraphQL schema
+graphene==3.2.0
+# Ariadne for modern GraphQL support
+ariadne==0.15.0
+# SQLAlchemy for database interactions (downgraded to 1.4.x for compatibility with Graphene-SQLAlchemy)
+SQLAlchemy==1.4.49
+# PostgreSQL driver
+psycopg2-binary==2.9.7
+# Consul for configuration management
+python-consul==1.1.0
+# Graphene-SQLAlchemy for mapping SQLAlchemy models to GraphQL types
+graphene-sqlalchemy==3.0.0b1
+# Pytest for tests
+pytest==7.1.2    
