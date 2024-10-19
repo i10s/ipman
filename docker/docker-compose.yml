@@ -1,18 +1,30 @@
-# docker-compose file for running the service
+# docker-compose file for running the service using Poetry
 # File: /docker/docker-compose.yml
 
-version: '3'
+version: '3.8'
 services:
   python-app:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile  # Dockerfile adapted for Poetry
     ports:
       - "5000:5000"
     environment:
       - CONSUL_HOST=10.121.109.180
     networks:
       - app-network
+    logging:
+      driver: "json-file"  # You could also use other logging drivers like "syslog"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    volumes:
+      - ../src:/app  # Mount the local source directory for live changes
+      - ../pyproject.toml:/app/pyproject.toml  # Ensure Poetry configuration is shared
+      - ../poetry.lock:/app/poetry.lock  # Mount the lock file to match dependencies
 
+    command: poetry run python /app/app.py  # Use Poetry to run the app
+    
 networks:
   app-network:
+    driver: bridge

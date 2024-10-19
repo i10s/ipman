@@ -58,7 +58,7 @@ This project provides a Python service that exposes a GraphQL API for managing I
 3. **Install Dependencies:**
 
    ```bash
-   pip install -r requirements.txt
+   poetry install
    ```
 
 4. **Configuration:**

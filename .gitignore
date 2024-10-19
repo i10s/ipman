@@ -6,6 +6,10 @@ __pycache__/
 *.swp
 *.swo
 
+# Poetry-specific
+.poetry/
+poetry.lock
+
 # Flask specific
 instance/
 .env
@@ -30,6 +34,7 @@ migrations/
 docker-compose.override.yml
 docker-compose.debug.yml
 .dockerignore
+.env.docker  # Optional: if you're using Docker-specific environment variables
 
 # PostgreSQL
 *.sql
