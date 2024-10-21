@@ -1,0 +1,50 @@
+<!-- File: /templates/ip_form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit' if ip else 'Add' }} IP Address</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>{{ 'Edit' if ip else 'Add' }} IP Address</h1>
+
+    <!-- File: /templates/ip_form.html -->
+    <form action="{{ url_for('save_ip', id=ip.id if ip else None) }}" method="POST">
+        <label for="ipAddress">IP Address:</label>
+        <!-- Ensure IP field is empty if it's None or if a range is being used -->
+        <input type="text" id="ipAddress" name="ipAddress" value="{{ ip.ip_address if ip and ip.ip_address else '' }}">
+    
+        <label for="ipRange">IP CIDR (Optional):</label>
+        <input type="text" id="ipRange" name="ip_range" value="{{ ip.ip_range if ip and ip.ip_range else '' }}">
+
+        <label for="rangeStart">IP Range Start (Optional):</label>
+        <input type="text" id="rangeStart" name="range_start" value="{{ ip.range_start if ip and ip.range_start else '' }}">
+    
+        <label for="rangeEnd"> IP Range End (Optional):</label>
+        <input type="text" id="rangeEnd" name="range_end" value="{{ ip.range_end if ip and ip.range_end else '' }}">
+    
+        <label for="serviceId">Service:</label>
+        <select id="serviceId" name="service_id" required>
+            <option value="">Select a service</option>
+            {% for service in services %}
+                <option value="{{ service.id }}" {% if ip and ip.service_id == service.id %}selected{% endif %}>{{ service.name }}</option>
+            {% endfor %}
+        </select>
+    
+        <label for="status">Status:</label>
+        <select id="status" name="status" required>
+            <option value="active" {% if ip and ip.status == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if ip and ip.status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+    
+        <button type="submit">{{ 'Update' if ip else 'Add' }} IP or Range</button>
+    </form>
+    
+    
+
+    <a href="{{ url_for('ip_list') }}" class="btn">Back to IP List</a>
+</body>
+</html>
+

@@ -23,6 +23,7 @@ type_defs = """
     type IPAddress {
         id: ID!
         ipAddress: String
+        ipRange: String  
         rangeStart: String
         rangeEnd: String
         status: String!
@@ -34,10 +35,15 @@ type_defs = """
 
     type Query {
         services: [Service!]!
+        service(id: ID!): Service  
         ipAddresses: [IPAddress!]!
         ipByAddress(address: String!): IPAddress
+        ipByCIDR(cidr: String!): [IPAddress]
     }
-"""
+
+
+    """
+
 
 # Create executable schema
 schema = make_executable_schema(type_defs, query)

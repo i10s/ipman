@@ -1,0 +1,25 @@
+<!-- File: /templates/service_form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit' if service else 'Create' }} Service</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>{{ 'Edit' if service else 'Create' }} Service</h1>
+
+    <form action="{{ url_for('save_service', id=service.id if service else None) }}" method="POST">
+        <label for="serviceName">Service Name:</label>
+        <input type="text" id="serviceName" name="service_name" value="{{ service.name if service else '' }}" required>
+
+        <label for="serviceDescription">Description:</label>
+        <textarea id="serviceDescription" name="service_description">{{ service.description if service else '' }}</textarea>
+
+        <button type="submit">{{ 'Update' if service else 'Add' }} Service</button>
+    </form>
+
+    <a href="{{ url_for('service_list') }}" class="btn">Back to Service List</a>
+</body>
+</html>

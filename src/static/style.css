@@ -1,0 +1,294 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #F5F5F5;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+h1, h2, h3 {
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #111;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-top: 30px;
+}
+
+h3 {
+    font-size: 1.5rem;
+    margin-top: 20px;
+}
+
+/* Form Elements */
+label {
+    font-size: 1rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 10px;
+    color: #444;
+}
+
+input[type="text"], 
+textarea, 
+select {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 2px solid #E0E0E0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+input[type="text"]:focus, 
+textarea:focus, 
+select:focus {
+    border-color: #007aff; /* Apple's Blue */
+    outline: none;
+}
+
+/* Button Styling */
+button {
+    width: 100%;
+    background-color: #007aff;
+    color: #fff;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+    background-color: #005bb5;
+}
+
+button:disabled {
+    background-color: #b0b0b0;
+    cursor: not-allowed;
+}
+
+.table {
+    margin-top: 20px; /* Ensure space between the button and the table */
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+th {
+    background-color: #007aff;
+    color: #fff;
+    font-weight: bold;
+}
+
+td {
+    color: #444;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+
+/* Flash Message Styling */
+.flash-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Card-Based Layout for Lists */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    background-color: #fff9e6; /* Light yellow */
+    border: 1px solid #ffe3b3; /* Border color slightly darker */
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    text-align: center;
+    text-decoration: none; /* Remove link underline */
+    color: inherit; /* Ensure text color inherits */
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    cursor: pointer; /* Change cursor to pointer */
+    background-color: #ffebcc; /* Slightly darker on hover */
+}
+
+.card h4, .card p {
+    margin: 0; /* Adjust margins for consistent spacing */
+}
+
+
+/* Existing IPs Styling (similar to services) */
+.existing-ips-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 20px;
+    margin-top: 20px;
+}
+
+/* List Styling */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+li span {
+    font-size: 1.1rem;
+    font-weight: 500;   
+}
+
+/* Links */
+a {
+    color: #007aff;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+}
+
+a:hover {
+    color: #005bb5;
+}
+
+
+/* Add a flex container for the forms */
+.forms-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px; /* Add spacing between the two forms */
+    flex-wrap: wrap; /* Ensure they stack on small screens */
+}
+
+form {
+    width: 48%; /* Set the width of each form */
+    background-color: #FFFFFF;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .forms-container {
+        flex-direction: column;
+    }
+
+    form {
+        width: 100%;
+    }
+}
+
+
+/* General Button Styling (reapply or modify existing styles) */
+.btn {
+    display: inline-block;
+    background-color: #007aff;
+    color: white;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.btn:hover {
+    background-color: #005bb5;
+}
+
+
+.ip-card, .range-card {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para darle estilo */
+    transition: transform 0.2s ease-in-out;
+}
+
+
+/* Background for IP cards */
+.ip-card {
+    background-color: #e6f7ff; /* Light blue */
+    border: 1px solid #b3e0ff; /* Border color slightly darker */
+}
+
+/* Background for Range cards */
+.range-card {
+    background-color: #e6ffe6; /* Light green */
+    border: 1px solid #b3ffb3; /* Border color slightly darker */
+}
+
+/* Background for CIDR IP cards */
+.cidr-card {
+    background-color: #ffe6e6; /* Very light red */
+    border: 1px solid #ff9999; /* Border color slightly darker */
+}
+/* Optional: Adjust hover effect for both types */
+.ip-card:hover, .range-card:hover {
+    transform: translateY(-10px);
+}
+
+
+/* Styling for the button container */
+.button-container {
+    display: flex;
+    gap: 20px;  /* Adds spacing between the buttons */
+    justify-content: center; /* Center align buttons */
+    margin-top: 20px; /* Add some space above the button container */
+}
+
+/* Add spacing to the button */
+.action-buttons {
+    margin-bottom: 20px; /* Space below the button */
+}
+

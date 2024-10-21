@@ -1,0 +1,188 @@
+<!-- File: /templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP and Service Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        // JavaScript for front-end validation
+        function validateServiceForm() {
+            const name = document.getElementById("serviceName").value;
+            const description = document.getElementById("serviceDescription").value;
+
+            if (!name.trim()) {
+                alert("Service name cannot be empty!");
+                return false;
+            }
+            if (description.length > 255) {
+                alert("Description is too long! Please limit it to 255 characters.");
+                return false;
+            }
+            return true; // If all validations pass
+        }
+
+    // Function to validate the IP form before submission
+    function validateIPForm() {
+        const ip = document.getElementById("ipAddress").value;
+        const ipRange = document.getElementById("ipRange").value;
+        const rangeStart = document.getElementById("rangeStart").value;
+        const rangeEnd = document.getElementById("rangeEnd").value;
+        const service = document.getElementById("serviceId").value;
+        const status = document.getElementById("status").value;
+
+        // Regular expression to validate IP addresses
+        const ipPattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+        // Regular expression to validate CIDR notation
+        const cidrPattern = /^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[1-2][0-9]|3[0-2])$/;
+
+        // Ensure that at least an IP address, a range, or a CIDR is provided
+        if (!ip && !ipRange && (!rangeStart || !rangeEnd)) {
+            alert("You must provide either an IP address, a valid IP range, or a valid CIDR.");
+            return false;
+        }
+
+        // Validate individual IP address format if provided
+        if (ip && !ip.match(ipPattern)) {
+            alert("Invalid IP address format!");
+            return false;
+        }
+
+        // Validate CIDR format if provided
+        if (ipRange && !ipRange.match(cidrPattern)) {
+            alert("Invalid IP range format! Please use CIDR notation (e.g., 192.168.0.0/24).");
+            return false;
+        }
+
+        // Validate the range if both range_start and range_end are provided
+        if (rangeStart && rangeEnd) {
+            if (!rangeStart.match(ipPattern) || !rangeEnd.match(ipPattern)) {
+                alert("Invalid Range Start or Range End IP address format!");
+                return false;
+            }
+        }
+
+        // Ensure a service is selected
+        if (!service) {
+            alert("Please select a service for the IP address!");
+            return false;
+        }
+
+        // Ensure a status is selected
+        if (!status) {
+            alert("Please select a status for the IP address!");
+            return false;
+        }
+
+        // If all validations pass, allow the form submission
+        return true;
+    }
+
+
+
+
+    </script>
+</head>
+<body>
+
+    <h1>IP and Service Management</h1>
+    
+    <div class="forms-container">
+        <!-- Form for adding a new service -->
+        <form action="/add-service" method="POST" onsubmit="return validateServiceForm()">
+            <h2>Add New Service</h2>
+            <label for="serviceName">Service Name:</label>
+            <input type="text" id="serviceName" name="service_name" required>
+            
+            <label for="serviceDescription">Description:</label>
+            <textarea id="serviceDescription" name="service_description"></textarea>
+            
+            <button type="submit">Add Service</button>
+        </form>
+
+    
+
+        <!-- Add New IP or Range form -->
+        <form action="/add-ip" method="POST" onsubmit="return validateIPForm()">
+            <h2>Add New IP Address or Range</h2>
+
+            <!-- IP Address (optional if using a range) -->
+            <label for="ipAddress">IP Address (Optional if using Range):</label>
+            <input type="text" id="ipAddress" name="ipAddress">
+
+            <!-- IP Range (optional) -->
+            <label for="ipRange">IP CIDR (Optional):</label>
+            <input type="text" id="ipRange" name="ip_range">
+
+            <!-- Range Start (optional) -->
+            <label for="rangeStart"> IP Range Start (Optional):</label>
+            <input type="text" id="rangeStart" name="range_start">
+
+            <!-- Range End (optional) -->
+            <label for="rangeEnd">IP Range End (Optional):</label>
+            <input type="text" id="rangeEnd" name="range_end">
+
+            <!-- Service Selection -->
+            <label for="serviceId">Service:</label>
+            <select id="serviceId" name="service_id" required>
+                <option value="">Select a service</option>
+                {% for service in services %}
+                    <option value="{{ service.id }}">{{ service.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Status Selection -->
+            <label for="status">Status:</label>
+            <select id="status" name="status" required>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+
+            <button type="submit">Add IP or Range</button>
+        </form>
+
+
+    </div>
+    
+
+    <h3>Existing Services</h3>
+    <div class="card-container">
+        {% for service in services %}
+            <a href="{{ url_for('edit_service', id=service.id) }}" class="card">
+                <h4>{{ service.name }}</h4>
+                <p>{{ service.description }}</p>
+            </a>
+        {% endfor %}
+    </div>
+    
+    <h3>Existing IPs</h3>
+    <div class="card-container">
+        {% for ip in ips %}
+            <a href="{{ url_for('edit_ip', id=ip.id) }}" class="card {% if ip.ip_range %}cidr-card{% elif ip.range_start and ip.range_end %}range-card{% else %}ip-card{% endif %}">
+                <h4>
+                    {% if ip.ip_range %}
+                        Range (CIDR): {{ ip.ip_range }}
+                    {% elif ip.ip_address %}
+                        IP Address: {{ ip.ip_address }}
+                    {% elif ip.range_start and ip.range_end %}
+                        Range: {{ ip.range_start }} - {{ ip.range_end }}
+                    {% else %}
+                        No IP or Range
+                    {% endif %}
+                </h4>
+                <p>Service: {{ ip.service.name if ip.service else 'No Service' }}</p>
+            </a>
+        {% endfor %}
+    </div>
+    
+    
+</body>
+</html>
+    
+        
+    
+</body>
+</html>

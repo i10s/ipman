@@ -1,6 +1,3 @@
-# docker-compose file for running the service using Poetry
-# File: /docker/docker-compose.yml
-
 version: '3.8'
 services:
   python-app:
@@ -8,13 +5,13 @@ services:
       context: ..
       dockerfile: docker/Dockerfile  # Dockerfile adapted for Poetry
     ports:
-      - "5000:5000"
+      - "5000:5000"  # GraphQL API exposed to all interfaces
     environment:
       - CONSUL_HOST=10.121.109.180
     networks:
       - app-network
     logging:
-      driver: "json-file"  # You could also use other logging drivers like "syslog"
+      driver: "json-file"  # Use the json-file driver for logging
       options:
         max-size: "200k"
         max-file: "10"
@@ -22,8 +19,21 @@ services:
       - ../src:/app  # Mount the local source directory for live changes
       - ../pyproject.toml:/app/pyproject.toml  # Ensure Poetry configuration is shared
       - ../poetry.lock:/app/poetry.lock  # Mount the lock file to match dependencies
-
     command: poetry run python /app/app.py  # Use Poetry to run the app
+
+  web-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile  # Reuse Dockerfile, or create a separate one if needed
+    ports:
+      - "0.0.0.0:8080:80"  # Web server only accessible from the private IP
+    networks:
+      - app-network
+    volumes:
+      - ../src/web:/app/web  # Serve web files from a separate directory
+    environment:
+      - CONSUL_HOST=10.121.109.180
+    command: poetry run python /app/web/server.py  # Web server command
     
 networks:
   app-network:

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ipman"
-version = "0.1.0"
+version = "1.0.0"
 description = "IP Management Service - GraphQL API"
 authors = ["Inaki Fuentes <inaki.fuentes@travelgate.com>"]
 readme = "README.md"

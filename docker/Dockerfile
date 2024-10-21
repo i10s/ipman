@@ -1,7 +1,4 @@
-# Dockerfile for building the service with Poetry
-# Dockerfile for production
-# File: /docker/Dockerfile
-
+# Dockerfile for building the service with Poetry for production
 # Use the official Python image
 FROM python:3.9-slim
 
@@ -14,15 +11,15 @@ RUN mkdir logs
 # Install Poetry globally
 RUN pip install poetry
 
-# Copy the pyproject.toml and poetry.lock files
-COPY ../pyproject.toml ../poetry.lock ./
+# Copy the pyproject.toml and poetry.lock files first
+# This allows Docker to cache the dependency layer
+COPY ./pyproject.toml ./poetry.lock ./
 
-# Install dependencies with Poetry
-RUN poetry config virtualenvs.create false \
-    && poetry install --only main --no-interaction --no-ansi
+# Install only production dependencies (exclude dev dependencies)
+RUN poetry install --no-root --no-dev
 
 # Copy the rest of the application code
-COPY ../src/ .
+COPY ./src/ .
 
 # Set environment variables for production
 ENV FLASK_ENV=production
@@ -30,5 +27,5 @@ ENV FLASK_ENV=production
 # Expose port 5000 for the GraphQL API
 EXPOSE 5000
 
-# Run the app with Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+# Run the command to start your app
+CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
