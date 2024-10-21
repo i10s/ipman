@@ -1,8 +1,15 @@
-# File: /src/logging.py
+# File: /src/app_logging.py
 
-import logging  # Import Python's built-in logging module
+import logging
 from logging.config import dictConfig
+import os
 
+# Ensure the logs directory exists
+LOG_DIR = "/app/logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# Define the log file path
+LOG_FILE = os.path.join(LOG_DIR, "app.log")
 
 # Configure logging for the application
 def configure_logging():
@@ -16,22 +23,28 @@ def configure_logging():
                 },
             },
             "handlers": {
-                "wsgi": {
+                "console": {
                     "class": "logging.StreamHandler",
                     "stream": "ext://sys.stdout",
                     "formatter": "default",
                 },
+                "file": {
+                    "class": "logging.FileHandler",
+                    "filename": LOG_FILE,
+                    "formatter": "default",
+                    "mode": "a",
+                },
             },
             "root": {
-                "level": "INFO",  # Change to 'DEBUG' for more detailed logging in development
-                "handlers": ["wsgi"],
+                "level": "DEBUG",  # Set to 'DEBUG' for detailed logging in development
+                "handlers": ["console", "file"],
             },
         }
     )
 
 
-# Call this function in the app to configure logging
+# Call this function to configure logging in the application
 configure_logging()
 
 # Re-export logging so other modules can use it like the built-in logging
-getLogger = logging.getLogger  # Ensure this refers to the built-in logging.getLogger
+getLogger = logging.getLogger

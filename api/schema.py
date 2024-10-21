@@ -1,8 +1,8 @@
 # GraphQL schema and queries definitions
-# File: /src/graphql_api/schema.py
+# File: schema.py
 
 from ariadne import QueryType, make_executable_schema
-from graphql_api.resolvers import resolve_services, resolve_ips, resolve_ip_by_address
+from api.resolvers import resolve_services, resolve_ips, resolve_ip_by_address
 
 # Define the Query type
 query = QueryType()
@@ -18,6 +18,7 @@ type_defs = """
         id: ID!
         name: String!
         description: String
+        ipAddresses: [IPAddress!]!  
     }
 
     type IPAddress {

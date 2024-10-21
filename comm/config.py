@@ -7,7 +7,7 @@ import consul
 
 class Config:
     def __init__(self):
-        self.consul_client = consul.Consul(host=os.getenv("CONSUL_HOST", "localhost"))
+        self.consul_client = consul.Consul(host=os.getenv("CONSUL_HOST", "10.121.109.180"))
 
     def get_config(self, key):
         index, data = self.consul_client.kv.get(key)

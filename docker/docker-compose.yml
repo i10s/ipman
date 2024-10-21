@@ -3,38 +3,40 @@ services:
   python-app:
     build:
       context: ..
-      dockerfile: docker/Dockerfile  # Dockerfile adapted for Poetry
+      dockerfile: docker/Dockerfile.api  # Dockerfile for the API using Poetry
     ports:
-      - "5000:5000"  # GraphQL API exposed to all interfaces
+      - "5000:5000"  # GraphQL API exposed on port 5000
     environment:
-      - CONSUL_HOST=10.121.109.180
+      - CONSUL_HOST=10.121.109.180  # Consul service for configuration
     networks:
       - app-network
     logging:
       driver: "json-file"  # Use the json-file driver for logging
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: "200k"  # Limit log size
+        max-file: "10"  # Keep up to 10 log files
     volumes:
-      - ../src:/app  # Mount the local source directory for live changes
-      - ../pyproject.toml:/app/pyproject.toml  # Ensure Poetry configuration is shared
-      - ../poetry.lock:/app/poetry.lock  # Mount the lock file to match dependencies
-    command: poetry run python /app/app.py  # Use Poetry to run the app
+      - ../api:/app/api  # Mount the API-specific source directory for live changes
+      - ../database:/app/database  # Mount the database directory if needed
+      - ../pyproject.toml:/app/pyproject.toml  # Mount pyproject.toml for Poetry dependencies
+      - ../poetry.lock:/app/poetry.lock  # Mount poetry.lock for consistency in dependencies
+    command: poetry run gunicorn -w 4 -b 0.0.0.0:5000 api.app:api_app  # Use Gunicorn to run API service
 
   web-server:
     build:
       context: ..
-      dockerfile: docker/Dockerfile  # Reuse Dockerfile, or create a separate one if needed
+      dockerfile: docker/Dockerfile.web  # Dockerfile for the web server
     ports:
-      - "0.0.0.0:8080:80"  # Web server only accessible from the private IP
+      - "8080:80"  # Expose web server on port 80 internally, mapped to 8080 externally
     networks:
       - app-network
     volumes:
-      - ../src/web:/app/web  # Serve web files from a separate directory
+      - ../web:/app/web  # Serve web files from the web directory
+      - ../database:/app/database  # Mount the database directory if needed for web access
     environment:
-      - CONSUL_HOST=10.121.109.180
-    command: poetry run python /app/web/server.py  # Web server command
-    
+      - CONSUL_HOST=10.121.109.180  # Consul service for configuration
+    command: poetry run python web/app.py  # Web server start command
+
 networks:
   app-network:
     driver: bridge

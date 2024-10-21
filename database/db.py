@@ -1,11 +1,10 @@
 # Database connection and session management
-# File: /src/database/db.py
-
+# File: /database/db.py
+import comm.app_logging as logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config import Config  # Ensure this is properly fetching from Consul
-import app_logging as logging
-from app_logging import getLogger
+from comm.config import Config  # Ensure this is properly fetching from Consul
+from comm.app_logging import getLogger
 
 # Set up logger for database interactions
 logger = logging.getLogger(__name__)

@@ -1,21 +1,20 @@
 [tool.poetry]
 name = "ipman"
 version = "1.0.0"
-description = "IP Management Service - GraphQL API"
+description = "IP Management Service - GraphQL API and Web Application"
 authors = ["Inaki Fuentes <inaki.fuentes@travelgate.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
 Flask = "2.3.2"
-ariadne = "0.14.0"  # Downgraded to re-enable PLAYGROUND_HTML
+ariadne = "0.14.0"
 graphene = "3.2.0"
 SQLAlchemy = "1.4.49"
 psycopg2-binary = "2.9.7"
 python-consul = "1.1.0"
 graphene-sqlalchemy = "3.0.0b1"
 gunicorn = "^23.0.0"
-
 
 [build-system]
 requires = ["poetry-core"]

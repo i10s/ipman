@@ -1,7 +1,8 @@
-# File: /src/app.py
-
+# File: /web/app.py
+import threading
+import os
+import comm.app_logging as logging
 from flask import Flask, request, jsonify, render_template, redirect, url_for, flash
-import app_logging as logging
 from logging.config import dictConfig
 from ariadne import graphql_sync
 from ariadne.constants import PLAYGROUND_HTML
@@ -11,31 +12,16 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects.postgresql import CIDR
 from database.db import get_db_session
-from database.models import IPAddress  # Import the IPAddress model here
-from database.models import Service  # Import the Service model
-from graphql_api.schema import schema  # Correct import from the graphql_api folder
-from graphql import GraphQLError
-import threading
-import os
+from database.models import IPAddress, Service # Import the IPAddress model and  the Service model here
+from ipaddress import ip_network
 
 
-# Initialize the Flask app for the API
-api_app = Flask(__name__)
 
 # Initialize another Flask app for the Web Interface
 web_app = Flask(__name__, static_folder="static", template_folder="templates")
 
 # Set the secret key to some random bytes. Keep this secret and unique in a real application.
 web_app.secret_key = os.urandom(24)
-
-
-# Custom error formatter to simplify the error output
-def custom_format_error(error, debug):
-    if isinstance(error, GraphQLError):
-        return {"message": error.message, "path": error.path}
-    # Default formatting for other exceptions
-    return {"message": str(error), "debug": debug}  # You can choose to log this or not
-
 
 # Configure logging for both API and Web applications
 dictConfig(
@@ -60,26 +46,6 @@ dictConfig(
         },
     }
 )
-
-logger = logging.getLogger(__name__)
-
-
-# Health check for the API
-@api_app.route("/health", methods=["GET"])
-def health_check():
-    try:
-        # Test database connectivity
-        db_session = next(get_db_session())
-        result = db_session.execute(text("SELECT 1")).fetchone()  # Basic DB query
-        if result:
-            logger.info("API Health check passed, database connected.")
-            return jsonify({"status": "healthy", "database": "connected"}), 200
-    except OperationalError:
-        logger.error("Database connection failed during API health check.")
-        return jsonify({"status": "unhealthy", "database": "connection failed"}), 500
-    except Exception as e:
-        logger.error(f"API Health check error: {e}")
-        return jsonify({"status": "unhealthy", "error": str(e)}), 500
 
 
 # Route to show service creation form (or edit if id is provided)
@@ -196,8 +162,6 @@ def ip_form():
         )
 
 
-from ipaddress import ip_network
-
 # Route to handle form submission for adding or updating an IP
 @web_app.route("/ip/save", methods=["POST"])
 def save_ip():
@@ -291,8 +255,6 @@ def add_ip_form():
     )  # Pass services to the template
 
 
-from ipaddress import ip_network
-
 # Route to handle form submission for adding an IP or Range
 @web_app.route("/add-ip", methods=["POST"])
 def add_ip():
@@ -358,63 +320,12 @@ def toggle_ip_status(ip_id):
     return redirect(url_for("ip_list"))
 
 
-# GraphQL Playground at /graphql
-@api_app.route("/graphql", methods=["GET"])
-def graphql_playground():
-    return PLAYGROUND_HTML  # Use the constant for the GraphQL Playground
-
-
-# GraphQL execution endpoint
-@api_app.route("/graphql", methods=["POST"])
-def graphql_server():
-    data = request.get_json()
-    success, result = graphql_sync(
-        schema,
-        data,
-        context_value=request,
-        debug=False,
-        error_formatter=custom_format_error,
-    )
-    if success:
-        logger.info("GraphQL query executed successfully.")
-    else:
-        logger.error("GraphQL query execution failed.")
-    return jsonify(result)
-
-
-# Serve the web app, restricted to the internal IP (e.g., 10.0.0.1)
-@web_app.route("/", methods=["GET"])
-def index():
-    with next(get_db_session()) as session:
-        # Query all services and IPs
-        services = session.query(Service).all()
-        ips = session.query(IPAddress).options(joinedload(IPAddress.service)).all()
-
-        # Pass both services and IPs to the template
-        return render_template("index.html", services=services, ips=ips)
-
-
 # Function to run API (on all IPs)
-def run_api():
-    api_app.run(host="0.0.0.0", port=5000)
-
-
-# Function to run Web App (on internal IP only)
 def run_web():
-    web_app.run(
-        host="0.0.0.0", port=5001
-    )  # Replace 10.0.0.1 with your internal/private IP
+    web_app.run(debug=True, host="0.0.0.0", port=5001)
 
 
-# Running both API and Web App in separate threads
 if __name__ == "__main__":
-    api_thread = threading.Thread(target=run_api)
-    web_thread = threading.Thread(target=run_web)
+    run_web()  # Simply run the API without threading
 
-    # Start both threads
-    api_thread.start()
-    web_thread.start()
 
-    # Join threads to keep both servers running
-    api_thread.join()
-    web_thread.join()

@@ -1,1 +1,0 @@
-# Setup script for packaging the service

@@ -1,0 +1,33 @@
+# Dockerfile for building the Web service with Poetry for production
+# Use the official Python image
+FROM python:3.9-slim
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Create logs directory
+RUN mkdir logs
+
+# Install Poetry globally
+RUN pip install poetry
+
+# Copy the pyproject.toml and poetry.lock files first
+# This allows Docker to cache the dependency layer
+COPY ./pyproject.toml ./poetry.lock ./
+
+# Install only production dependencies (exclude dev dependencies)
+RUN poetry install --no-root --no-dev
+
+# Copy only the Web-related code
+COPY ./comm/ /app/comm
+COPY ./database/ /app/database
+COPY ./web/ /app/web
+
+# Set environment variables for production
+ENV FLASK_ENV=production
+
+# Expose port 5001 for the Web App
+EXPOSE 5001
+
+# Run the command to start the Web app using Gunicorn
+CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:5001", "web.app:app"]
