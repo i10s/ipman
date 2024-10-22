@@ -1,6 +1,6 @@
 # File: /src/graphql_api/resolvers.py
+
 import ipaddress
-import logging
 from ariadne import QueryType
 from graphql import GraphQLError
 from sqlalchemy.orm import joinedload
@@ -9,11 +9,12 @@ from ipaddress import ip_network
 from database.models import IPAddress, Service
 from database.db import get_db_session
 import comm.app_logging as logging
-import logging
+
+# Initialize the logger for this module
+logger = logging.getLogger(__name__)
 
 # Initialize a query type for GraphQL queries
 query = QueryType()
-
 
 # Helper function to convert Service model to dictionary (without including IPs)
 def service_to_dict(service, include_ips=False):
@@ -21,14 +22,13 @@ def service_to_dict(service, include_ips=False):
         "id": service.id,
         "name": service.name,
         "description": service.description,
-        # Only include associated IPs if explicitly requested (prevents recursion)
+        "createdAt": service.created_at,
         "ipAddresses": (
             [ip_to_dict(ip, include_service=False) for ip in service.ip_addresses]
             if include_ips
             else []
         ),
     }
-
 
 # Helper function to convert IPAddress model to dictionary (without recursive service)
 def ip_to_dict(ip, include_service=True):
@@ -42,14 +42,12 @@ def ip_to_dict(ip, include_service=True):
         "createdAt": ip.created_at,
         "updatedAt": ip.updated_at,
         "deactivatedAt": ip.deactivated_at,
-        # Only include the service if the flag is set to True (prevents recursion)
         "service": (
             service_to_dict(ip.service, include_ips=False)
             if ip.service and include_service
             else None
         ),
     }
-
 
 # Validator for IP address and range
 def validate_ip_and_range(ip_address, range_start, range_end):
@@ -73,10 +71,9 @@ def validate_ip_and_range(ip_address, range_start, range_end):
                 f"'{range_start}' or '{range_end}' is not a valid IP address."
             )
 
-
 # Resolver for fetching all services
+@query.field("services")
 def resolve_services(*_):
-    logger = logging.getLogger(__name__)
     try:
         with next(get_db_session()) as session:
             services = session.query(Service).all()
@@ -85,62 +82,44 @@ def resolve_services(*_):
     except Exception as e:
         logger.error(f"Failed to fetch services: {e}")
         raise GraphQLError("Error fetching services.")
-    
+
 # Resolver to get the IPs associated with a Service
 @query.field("ipAddresses")
 def resolve_ip_addresses(service, info):
-    session = info.context["session"]
-    return session.query(IPAddress).filter_by(service_id=service.id).all()
+    try:
+        session = info.context["session"]
+        return session.query(IPAddress).filter_by(service_id=service.id).all()
+    except Exception as e:
+        logger.error(f"Failed to fetch IP addresses for service {service.id}: {e}")
+        raise GraphQLError(f"Error fetching IP addresses for service {service.id}.")
 
 # Resolver for IPAddress based on CIDR
+@query.field("ipByCIDR")
 def resolve_ip_by_cidr(_, info, cidr):
-    logger = logging.getLogger(__name__)  # Create a logger for this module
+    try:
+        cidr_network = str(ip_network(cidr, strict=False))
+        logger.info(f"Parsed CIDR: {cidr_network}")
+    except ValueError:
+        logger.error(f"Invalid CIDR input: {cidr}")
+        raise GraphQLError(f"'{cidr}' is not a valid CIDR format.")
 
     with next(get_db_session()) as session:
         try:
-            # Parse CIDR input to ensure it's valid
-            cidr_network = str(ip_network(cidr, strict=False))
-            logger.info(f"Parsed CIDR: {cidr_network}")
-        except ValueError:
-            logger.error(f"Invalid CIDR input: {cidr}")
-            raise GraphQLError(f"'{cidr}' is not a valid CIDR format.")
-
-        # Debugging step: log all existing IP ranges in the database
-        all_ips = session.query(IPAddress).all()
-        logger.info(
-            f"Existing IP ranges in DB: {[str(ip.ip_range) for ip in all_ips if ip.ip_range]}"
-        )
-
-        # Query the database for IP addresses within this CIDR block
-        try:
-            # Log the exact query we are executing
-            logger.info(f"Executing query for CIDR: {cidr_network}")
-
-            # Filter IP addresses where ip_range is within the provided CIDR range
             ips = (
                 session.query(IPAddress)
                 .filter(IPAddress.ip_range.op("<<=")(cidr_network))
                 .all()
             )
-
-            # Log the query result
             logger.info(f"Query result: {ips}")
         except Exception as e:
             logger.error(f"Error querying IPs by CIDR: {e}")
             raise GraphQLError("Failed to query IP addresses by CIDR.")
 
-        # Log and return matching IP addresses, or None if no matches found
-        if ips:
-            logger.info(f"Found {len(ips)} IPs matching CIDR: {cidr}")
-            return [ip_to_dict(ip) for ip in ips]
-        else:
-            logger.info(f"No IPs found matching CIDR: {cidr}")
-            return None
-
+        return [ip_to_dict(ip) for ip in ips] if ips else []
 
 # Resolver for fetching all IP addresses
+@query.field("ipAddresses")
 def resolve_ips(*_):
-    logger = logging.getLogger(__name__)
     try:
         with next(get_db_session()) as session:
             ips = session.query(IPAddress).options(joinedload(IPAddress.service)).all()
@@ -150,22 +129,16 @@ def resolve_ips(*_):
         logger.error(f"Failed to fetch IP addresses: {e}")
         raise GraphQLError("Error fetching IP addresses.")
 
-
 # Resolver for fetching an IP by address
+@query.field("ipByAddress")
 def resolve_ip_by_address(_, info, address):
-    logger = logging.getLogger(__name__)  # Create a logger for this module
-
     try:
-        # Validate the IP address
         ip = ipaddress.ip_address(address)
     except ValueError:
-        # Log the error using the new logging system
         logger.error(f"Invalid IP address input: {address}")
-        # Return a clean GraphQL error to the client without logging it twice
         raise GraphQLError(f"'{address}' is not a valid IP address.")
 
     with next(get_db_session()) as session:
-        # Query to find IP by either single IP or range
         ip_record = (
             session.query(IPAddress)
             .filter(
@@ -180,7 +153,6 @@ def resolve_ip_by_address(_, info, address):
         )
 
         if ip_record:
-            # Check if the client is requesting the "service" field without specifying subfields
             selections = [
                 field.name.value
                 for field in info.field_nodes[0].selection_set.selections
@@ -193,30 +165,21 @@ def resolve_ip_by_address(_, info, address):
                     "Field 'service' must specify subfields like { id, name, description }."
                 )
 
-            # Return the IP record as a dictionary
             return ip_to_dict(ip_record)
         else:
-            # Log if no IP record was found
             logger.info(f"No IP record found for address: {address}")
-            return None  # If no IP record is found, return None
-
+            return None
 
 # Resolver for fetching a specific service by ID, including related IP addresses
+@query.field("service")
 def resolve_service(_, info, id):
     with next(get_db_session()) as session:
+        # Eagerly load the associated IP addresses with the service
         service = (
             session.query(Service)
-            .options(joinedload(Service.ip_addresses))
+            .options(joinedload(Service.ip_addresses))  # Ensure IPs are loaded
             .get(int(id))
         )
         if not service:
             raise GraphQLError(f"Service with ID {id} not found")
-        return service_to_dict(service)
-
-
-# Set the fields for the GraphQL queries
-query.set_field("services", resolve_services)
-query.set_field("ipAddresses", resolve_ips)
-query.set_field("ipByAddress", resolve_ip_by_address)
-query.set_field("ipByCIDR", resolve_ip_by_cidr)
-query.set_field("service", resolve_service)
+        return service_to_dict(service, include_ips=True)  # Pass include_ips=True to include IPs

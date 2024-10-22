@@ -25,6 +25,7 @@ COPY ./api/ /app/api
 
 # Set environment variables for production
 ENV FLASK_ENV=production
+ENV PYTHONPATH=/app
 
 # Expose port 5000 for the GraphQL API
 EXPOSE 5000
