@@ -85,7 +85,12 @@ def resolve_services(*_):
     except Exception as e:
         logger.error(f"Failed to fetch services: {e}")
         raise GraphQLError("Error fetching services.")
-
+    
+# Resolver to get the IPs associated with a Service
+@query.field("ipAddresses")
+def resolve_ip_addresses(service, info):
+    session = info.context["session"]
+    return session.query(IPAddress).filter_by(service_id=service.id).all()
 
 # Resolver for IPAddress based on CIDR
 def resolve_ip_by_cidr(_, info, cidr):

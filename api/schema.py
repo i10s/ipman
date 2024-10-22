@@ -18,7 +18,10 @@ type_defs = """
         id: ID!
         name: String!
         description: String
-        ipAddresses: [IPAddress!]!  
+        status: String
+        createdAt: String
+        updatedAt: String
+        ipAddresses: [IPAddress!]!  # Adding the association with IPAddress
     }
 
     type IPAddress {
