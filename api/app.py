@@ -13,13 +13,17 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects.postgresql import CIDR
 from database.db import get_db_session
-from database.models import IPAddress, Service # Import the IPAddress model and  the Service model here
+from database.models import (
+    IPAddress,
+    Service,
+)  # Import the IPAddress model and  the Service model here
 from api.schema import schema
 from graphql import GraphQLError
 
 
 # Initialize the Flask app for the API
 api_app = Flask(__name__)
+
 
 # Custom error formatter to simplify the error output
 def custom_format_error(error, debug):
@@ -106,5 +110,3 @@ def run_api():
 
 if __name__ == "__main__":
     run_api()  # Simply run the API without threading
-
-

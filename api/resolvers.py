@@ -14,6 +14,7 @@ import logging
 # Initialize a query type for GraphQL queries
 query = QueryType()
 
+
 # Helper function to convert Service model to dictionary (without including IPs)
 def service_to_dict(service, include_ips=False):
     return {
@@ -21,7 +22,11 @@ def service_to_dict(service, include_ips=False):
         "name": service.name,
         "description": service.description,
         # Only include associated IPs if explicitly requested (prevents recursion)
-        "ipAddresses": [ip_to_dict(ip, include_service=False) for ip in service.ip_addresses] if include_ips else []
+        "ipAddresses": (
+            [ip_to_dict(ip, include_service=False) for ip in service.ip_addresses]
+            if include_ips
+            else []
+        ),
     }
 
 
@@ -38,9 +43,12 @@ def ip_to_dict(ip, include_service=True):
         "updatedAt": ip.updated_at,
         "deactivatedAt": ip.deactivated_at,
         # Only include the service if the flag is set to True (prevents recursion)
-        "service": service_to_dict(ip.service, include_ips=False) if ip.service and include_service else None,
+        "service": (
+            service_to_dict(ip.service, include_ips=False)
+            if ip.service and include_service
+            else None
+        ),
     }
-
 
 
 # Validator for IP address and range
@@ -94,18 +102,22 @@ def resolve_ip_by_cidr(_, info, cidr):
 
         # Debugging step: log all existing IP ranges in the database
         all_ips = session.query(IPAddress).all()
-        logger.info(f"Existing IP ranges in DB: {[str(ip.ip_range) for ip in all_ips if ip.ip_range]}")
+        logger.info(
+            f"Existing IP ranges in DB: {[str(ip.ip_range) for ip in all_ips if ip.ip_range]}"
+        )
 
         # Query the database for IP addresses within this CIDR block
         try:
             # Log the exact query we are executing
             logger.info(f"Executing query for CIDR: {cidr_network}")
-            
+
             # Filter IP addresses where ip_range is within the provided CIDR range
-            ips = session.query(IPAddress).filter(
-                IPAddress.ip_range.op("<<=")(cidr_network)
-            ).all()
-            
+            ips = (
+                session.query(IPAddress)
+                .filter(IPAddress.ip_range.op("<<=")(cidr_network))
+                .all()
+            )
+
             # Log the query result
             logger.info(f"Query result: {ips}")
         except Exception as e:
@@ -184,15 +196,17 @@ def resolve_ip_by_address(_, info, address):
             return None  # If no IP record is found, return None
 
 
-
 # Resolver for fetching a specific service by ID, including related IP addresses
 def resolve_service(_, info, id):
     with next(get_db_session()) as session:
-        service = session.query(Service).options(joinedload(Service.ip_addresses)).get(int(id))
+        service = (
+            session.query(Service)
+            .options(joinedload(Service.ip_addresses))
+            .get(int(id))
+        )
         if not service:
             raise GraphQLError(f"Service with ID {id} not found")
         return service_to_dict(service)
-
 
 
 # Set the fields for the GraphQL queries
@@ -201,4 +215,3 @@ query.set_field("ipAddresses", resolve_ips)
 query.set_field("ipByAddress", resolve_ip_by_address)
 query.set_field("ipByCIDR", resolve_ip_by_cidr)
 query.set_field("service", resolve_service)
-

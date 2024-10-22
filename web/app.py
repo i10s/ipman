@@ -11,9 +11,11 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects.postgresql import CIDR
 from database.db import get_db_session
-from database.models import IPAddress, Service # Import the IPAddress model and  the Service model here
+from database.models import (
+    IPAddress,
+    Service,
+)  # Import the IPAddress model and  the Service model here
 from ipaddress import ip_network
-
 
 
 # Initialize another Flask app for the Web Interface
@@ -172,7 +174,9 @@ def save_ip():
     # Validate and correct the CIDR range if provided
     if ip_range:
         try:
-            ip_range = str(ip_network(ip_range, strict=False))  # Auto-corrects the CIDR block
+            ip_range = str(
+                ip_network(ip_range, strict=False)
+            )  # Auto-corrects the CIDR block
         except ValueError:
             flash("Invalid CIDR range. Please provide a valid network address.")
             return redirect(request.referrer)
@@ -258,7 +262,9 @@ def add_ip():
     # Validate and correct the CIDR range if provided
     if ip_range:
         try:
-            ip_range = str(ip_network(ip_range, strict=False))  # Auto-corrects the CIDR block
+            ip_range = str(
+                ip_network(ip_range, strict=False)
+            )  # Auto-corrects the CIDR block
         except ValueError:
             flash("Invalid CIDR range. Please provide a valid network address.")
             return redirect(url_for("add_ip_form"))
@@ -279,7 +285,6 @@ def add_ip():
         session.commit()
 
     return redirect(url_for("index"))
-
 
 
 # Route to activate/deactivate an IP
@@ -306,6 +311,7 @@ def index():
         # Pass both services and IPs to the template (if needed)
         return render_template("index.html", services=services, ips=ips)
 
+
 # Function to run API (on all IPs)
 def run_web():
     web_app.run(debug=True, host="0.0.0.0", port=5001)
@@ -313,5 +319,3 @@ def run_web():
 
 if __name__ == "__main__":
     run_web()  # Simply run the API without threading
-
-
