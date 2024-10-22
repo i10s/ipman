@@ -4,7 +4,7 @@ import threading
 import os
 import comm.app_logging as logging
 from logging.config import dictConfig
-from flask import Flask, request, jsonify, render_template, redirect, url_for, flash
+from flask import Flask, request, jsonify
 from ariadne import graphql_sync
 from ariadne.constants import PLAYGROUND_HTML
 from sqlalchemy.exc import OperationalError
@@ -97,18 +97,6 @@ def graphql_server():
     else:
         logger.error("GraphQL query execution failed.")
     return jsonify(result)
-
-
-# Route to fetch and display services and IPs for the API
-@api_app.route("/", methods=["GET"])
-def index():
-    with next(get_db_session()) as session:
-        # Query all services and IPs
-        services = session.query(Service).all()
-        ips = session.query(IPAddress).options(joinedload(IPAddress.service)).all()
-
-        # Pass both services and IPs to the template (if needed)
-        return render_template("index.html", services=services, ips=ips)
 
 
 # Function to run API (on all IPs)

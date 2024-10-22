@@ -33,6 +33,8 @@ services:
     volumes:
       - ../web:/app/web  # Serve web files from the web directory
       - ../database:/app/database  # Mount the database directory if needed for web access
+      - ../pyproject.toml:/app/pyproject.toml  # Mount pyproject.toml for Poetry dependencies
+      - ../poetry.lock:/app/poetry.lock  # Mount poetry.lock for consistency in dependencies
     environment:
       - CONSUL_HOST=10.121.109.180  # Consul service for configuration
     command: poetry run python web/app.py  # Web server start command

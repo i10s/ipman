@@ -6,7 +6,7 @@ import os
 
 # Ensure the logs directory exists
 LOG_DIR = "/app/logs"
-os.makedirs(LOG_DIR, exist_ok=True)
+#os.makedirs(LOG_DIR, exist_ok=True)
 
 # Define the log file path
 LOG_FILE = os.path.join(LOG_DIR, "app.log")

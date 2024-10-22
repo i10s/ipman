@@ -1,7 +1,6 @@
 # File: /web/app.py
 import threading
 import os
-import comm.app_logging as logging
 from flask import Flask, request, jsonify, render_template, redirect, url_for, flash
 from logging.config import dictConfig
 from ariadne import graphql_sync
@@ -18,34 +17,10 @@ from ipaddress import ip_network
 
 
 # Initialize another Flask app for the Web Interface
-web_app = Flask(__name__, static_folder="static", template_folder="templates")
+web_app = Flask(__name__, static_folder="/static", template_folder="/templates")
 
 # Set the secret key to some random bytes. Keep this secret and unique in a real application.
 web_app.secret_key = os.urandom(24)
-
-# Configure logging for both API and Web applications
-dictConfig(
-    {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "default": {
-                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
-            },
-        },
-        "handlers": {
-            "wsgi": {
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stdout",
-                "formatter": "default",
-            },
-        },
-        "root": {
-            "level": "INFO",  # Use 'DEBUG' for more detailed logs in development
-            "handlers": ["wsgi"],
-        },
-    }
-)
 
 
 # Route to show service creation form (or edit if id is provided)
@@ -59,7 +34,7 @@ def add_service_form():
             )  # Fetch service by ID if provided
             if service:
                 return render_template(
-                    "service_form.html", service=service
+                    "/templates/service_form.html", service=service
                 )  # Pass service to the template
     # If no service ID is provided, render an empty form for adding a new service
     return render_template("service_form.html", service=None)
@@ -154,11 +129,11 @@ def ip_form():
         if ip_id:
             ip = session.query(IPAddress).get(ip_id)
             return render_template(
-                "ip_form.html", action="Update", ip=ip, services=services
+                "/templates/ip_form.html", action="Update", ip=ip, services=services
             )
 
         return render_template(
-            "ip_form.html", action="Create", ip=None, services=services
+            "/templates/ip_form.html", action="Create", ip=None, services=services
         )
 
 
@@ -251,7 +226,7 @@ def add_ip_form():
     with next(get_db_session()) as session:
         services = session.query(Service).all()  # Fetch all services from the database
     return render_template(
-        "ip_form.html", services=services
+        "/templates/ip_form.html", services=services
     )  # Pass services to the template
 
 
@@ -319,6 +294,17 @@ def toggle_ip_status(ip_id):
         session.commit()
     return redirect(url_for("ip_list"))
 
+
+# Route to fetch and display services and IPs for the API
+@web_app.route("/", methods=["GET"])
+def index():
+    with next(get_db_session()) as session:
+        # Query all services and IPs
+        services = session.query(Service).all()
+        ips = session.query(IPAddress).options(joinedload(IPAddress.service)).all()
+
+        # Pass both services and IPs to the template (if needed)
+        return render_template("index.html", services=services, ips=ips)
 
 # Function to run API (on all IPs)
 def run_web():
