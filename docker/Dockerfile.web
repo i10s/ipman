@@ -21,10 +21,7 @@ RUN poetry install --no-root --no-dev
 # Copy only the Web-related code
 COPY ./comm/ /app/comm
 COPY ./database/ /app/database
-COPY ./web/ /app/web
-COPY ./web/static /app/web/static
-COPY ./web/templates /app/web/templates
-
+COPY ./web/ /app/
 
 # Set environment variables for production
 ENV FLASK_ENV=production

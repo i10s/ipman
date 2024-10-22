@@ -17,7 +17,7 @@ from ipaddress import ip_network
 
 
 # Initialize another Flask app for the Web Interface
-web_app = Flask(__name__, static_folder="/static", template_folder="/templates")
+web_app = Flask(__name__)
 
 # Set the secret key to some random bytes. Keep this secret and unique in a real application.
 web_app.secret_key = os.urandom(24)
